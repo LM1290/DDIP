@@ -25,7 +25,7 @@ struct ContentView: View {
     // Configuration
     // NOTE: If running on Simulator, use localhost.
     // If running on physical iPhone, use your computer's local IP (e.g., http://192.168.1.5:8000)
-    let baseURL = "http://localhost:8000"
+    let baseURL = "http://127.0.0.1:8000"
 
     var body: some View {
         ZStack {

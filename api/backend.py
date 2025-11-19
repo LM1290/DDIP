@@ -7,6 +7,7 @@ from rdkit.Chem import AllChem
 from fastapi import FastAPI
 from pydantic import BaseModel
 import random
+from real_data import get_real_dataset
 
 app = FastAPI()
 
@@ -31,22 +32,45 @@ class DDI_Network(nn.Module):
         return self.sigmoid(self.output(x))
 
 
-# --- 2. INITIALIZATION (Mock Data & Training) ---
-# In a real scenario, we load a saved model file (.pth)
-# Here we train on startup for the prototype.
-print("Initializing System... Generating Synthetic Data & Training Model...")
+# --- 2. INITIALIZATION (Real Data) ---
+print("Initializing BioGuard... Loading Curated Interaction Database...")
 
-valid_smiles = [
-    "CC(=O)OC1=CC=CC=C1C(=O)O", "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",
-    "CC(=O)NC1=CC=C(O)C=C1", "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
-    "CCO", "C1CCCCC1"
-]
-drug_names = ["Aspirin", "Ibuprofen", "Tylenol", "Caffeine", "Alcohol", "Cyclohexane"]
-drug_db = {name: smile for name, smile in zip(drug_names, valid_smiles)}
+# Load real data from our helper script
+drug_db, df_train = get_real_dataset()
 
-# Train dummy model
+print(f"Training on {len(df_train)} clinically validated pairs...")
+
+# Prepare Tensors
+X_data = []
+y_data = []
+
+for _, row in df_train.iterrows():
+    v1 = smiles_to_vector(row['SMILES_A'])
+    v2 = smiles_to_vector(row['SMILES_B'])
+    combined = np.concatenate([v1, v2])
+    X_data.append(combined)
+    y_data.append(row['Label'])
+
+X_train = torch.FloatTensor(np.array(X_data))
+y_train = torch.FloatTensor(np.array(y_data)).unsqueeze(1)
+
+# Train Model
 model = DDI_Network()
-model.eval()  # Set to eval for inference
+# Use Weighted Loss if dataset is imbalanced, but BCELoss is fine for now
+criterion = nn.BCELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001) # Standard learning rate
+
+model.train()
+# Train longer because real chemistry is harder to learn than random noise
+for epoch in range(200):
+    optimizer.zero_grad()
+    outputs = model(X_train)
+    loss = criterion(outputs, y_train)
+    loss.backward()
+    optimizer.step()
+
+model.eval()
+print(f"Model Converged. Final Loss: {loss.item():.4f}")
 
 
 # --- 3. HELPER FUNCTIONS ---
