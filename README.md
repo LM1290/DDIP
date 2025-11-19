@@ -1,3 +1,5 @@
+![ddip](https://github.com/user-attachments/assets/acb3befc-ed3d-4cbb-8c89-0e0ace5abcf0)
+
 BioGuard: Deep Learning DDI Predictor
 
 A full-stack prototype for predicting adverse Drug-Drug Interactions (DDI) using chemical structure embeddings.
