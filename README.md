@@ -1,3 +1,7 @@
+DISCLAIMER: Model was trained on a synthetic dataset and IS NOT intended for any practical clinical applications. 
+
+
+
 ![ddip](https://github.com/user-attachments/assets/acb3befc-ed3d-4cbb-8c89-0e0ace5abcf0)
 
 BioGuard: Deep Learning DDI Predictor
